@@ -10,20 +10,11 @@ import Typography from "@mui/material/Typography";
 import { FormControl, TextField, Container, Grid } from "@mui/material";
 import axios from "axios";
 import { useEffect } from "react";
-// import moment from "moment";
-import InfiniteScroll from 'react-infinite-scroll-component';
+
 const Body = () => {
   const [baseImage, setBaseImage] = useState();
-    const [image, setImage] = useState([]);
-    const [page, setPage] = useState(1)
-    
-  useEffect(() => {
-    (async () => {
-      let { data } = await axios.get("/getimage");
-      setImage(data);
-      console.log(data);
-    })();
-  }, []);
+  const [images, setImages] = useState([]);
+  const [skip, setSkip] = useState(0);
 
   async function Upload(e) {
     try {
@@ -56,12 +47,21 @@ const Body = () => {
     const base64 = await convertBase64(file);
     setBaseImage(base64);
   };
-
-    
-    const fetchData = () => {
-       
-
+  const handleScroll = (e) => {
+    const { offsetHeight, scrollTop, scrollHeight } = e.target;
+    if (offsetHeight + scrollTop >= scrollHeight) {
+      setSkip(images.length);
     }
+  };
+  useEffect(() => {
+    (async () => {
+      let { data } = await axios.get(`/images?skip=${skip}`);
+      setImages([...images,...data]);
+    })();
+  }, [skip]);
+
+
+
   return (
     <div>
       <FormControl>
@@ -79,47 +79,45 @@ const Body = () => {
         </div>
       </FormControl>
 
-          <InfiniteScroll dataLength={image.length} next={fetchData}
-              hasMore={true}
-              
-             
-              > 
-        <div
-          style={{
-            display: "flex",
+     
+      <Box
+        sx={{
+          width: "100vw",
+          height: "75vh",
+          overflow: "auto",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          
+        }}
+        onScroll={handleScroll}
+      >
+        {images.map((data) => (
+          <Box>
+            <Card
+              sx={{
+                maxWidth: 345,
+                boxShadow: 9,
+                "&:hover": {
+                  boxShadow: 6,
+                },
+                borderRadius: 2,
+              }}
+            >
+              <CardMedia
+                component="img"
+                height="194"
+                image={data.image}
+                alt="green iguana"
+              />
 
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            marginTop: "50px",
-          }}
-        >
-          {image.map((data) => (
-            <Box>
-              <Card
-                sx={{
-                  maxWidth: 345,
-                  boxShadow: 9,
-                  "&:hover": {
-                    boxShadow: 6,
-                  },
-                  borderRadius: 2,
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  height="194"
-                  image={data.image}
-                  alt="green iguana"
-                />
-
-                <CardContent>
-                  <Typography> </Typography>
-                </CardContent>
-              </Card>
-            </Box>
-          ))}
-        </div>
-      </InfiniteScroll>
+              <CardContent>
+                <Typography> </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        ))}
+      </Box>
     </div>
   );
 };

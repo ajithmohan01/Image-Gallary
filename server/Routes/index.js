@@ -15,9 +15,9 @@ router.post("/upload", async (req, res) => {
       image: url,
       date,
     });
-      
+
       let response = await photo.save();
-      console.log(response);
+      console.log(response); 
       
       res.json("Image uploaded")
   } catch (error) {
@@ -26,17 +26,24 @@ router.post("/upload", async (req, res) => {
 });
 
 
-router.get("/getimage", async (req, res) => {
+router.get("/images", async (req, res) => {
+  const { skip } = req.query
+  console.log(skip);
     try {
         
-        const datas = await PhotosModel.find()
+      const datas = await PhotosModel.find().skip(skip).limit(10)
         res.json(datas);
         
     } catch (error) {
         console.log(error);
     }
-    
-    
 });
+
+
+
+
+
+
+
 
 module.exports = router;
